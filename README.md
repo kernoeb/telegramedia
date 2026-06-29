@@ -115,13 +115,17 @@ See [`tools/build-tdlib.md`](tools/build-tdlib.md) to regenerate it.
 
 ## Known limitations
 
-- The TDLib session database (`filesDir/tdlib`) is stored **without a
-  `databaseEncryptionKey`**. The app sandbox protects it on a non-rooted device, but on
-  a rooted/compromised device it (and the saved login phone number in DataStore) is
-  readable. Documented, not yet hardened.
 - The local stream server is **loopback-only** (`127.0.0.1`, ephemeral port). Stream
   routes use a random per-session token.
 - Release builds are not minified/obfuscated (`isMinifyEnabled = false`).
+
+## Security
+
+- The TDLib session database (`filesDir/tdlib`) is **encrypted at rest** with a
+  `databaseEncryptionKey`. The key is random per install and wrapped by a hardware-backed
+  Android Keystore key, so the database stays unreadable on a rooted/compromised device
+  (see `security/DatabaseKeyStore.kt`). The login phone number is only persisted during
+  the login flow and cleared once the session is ready.
 
 ## License
 

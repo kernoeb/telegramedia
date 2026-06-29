@@ -29,6 +29,10 @@ android {
         versionCode = 1
         versionName = "0.1.0"
 
+        // Instrumented tests run on a connected arm64 device (./gradlew connectedDebugAndroidTest);
+        // the Android Keystore crypto in DatabaseKeyStore can't be exercised on the plain JVM.
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
         buildConfigField("int", "TELEGRAM_API_ID", secrets.getProperty("TELEGRAM_API_ID") ?: "0")
         buildConfigField("String", "TELEGRAM_API_HASH", "\"${secrets.getProperty("TELEGRAM_API_HASH") ?: ""}\"")
 
@@ -115,4 +119,8 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.libmpv)
+
+    androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.runner)
 }

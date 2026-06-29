@@ -38,6 +38,7 @@ class TdLibTelegramService(
     private var client = TdlibClient()
     private var collectorJob: Job? = null
     private val fileServer = HttpStreamServer()
+    private val dbKeyStore = app.telegramedia.security.DatabaseKeyStore(context)
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Initializing)
     override val authState: StateFlow<AuthState> = _authState.asStateFlow()
@@ -115,16 +116,23 @@ class TdLibTelegramService(
             is TdApi.AuthorizationStateWaitTdlibParameters ->
                 if (parametersSent.compareAndSet(false, true)) sendParameters()
             is TdApi.AuthorizationStateWaitPhoneNumber -> _authState.value = AuthState.WaitPhoneNumber
+            is TdApi.AuthorizationStateWaitOtherDeviceConfirmation ->
+                // QR login was removed, but a session persisted mid-QR (from an older
+                // build) would otherwise be stuck here forever — TDLib rejects a phone
+                // number while a QR attempt is pending. Show phone entry; submitting a
+                // number switches TDLib out of the QR flow.
+                _authState.value = AuthState.WaitPhoneNumber
             is TdApi.AuthorizationStateWaitCode ->
                 // In-memory `pendingPhone` is null after a cold start that resumes
                 // directly into WaitCode; fall back to the persisted number.
                 _authState.value = AuthState.WaitCode(pendingPhone ?: settings.loadPendingPhone().orEmpty())
             is TdApi.AuthorizationStateWaitPassword ->
                 _authState.value = AuthState.WaitPassword(state.passwordHint.ifBlank { null })
-            is TdApi.AuthorizationStateWaitOtherDeviceConfirmation ->
-                _authState.value = AuthState.WaitQrCode(state.link)
             is TdApi.AuthorizationStateReady -> {
                 _authState.value = AuthState.Ready
+                // The persisted phone is only needed to repopulate the WaitCode screen
+                // mid-login; drop it now so a logged-in session keeps no plaintext copy.
+                runCatching { settings.clearPendingPhone() }
                 trimCache() // clean up any large accumulated download cache on startup
             }
             is TdApi.AuthorizationStateClosed -> {
@@ -141,23 +149,30 @@ class TdLibTelegramService(
     }
 
     private suspend fun sendParameters() {
-        val params = TdApi.SetTdlibParameters().apply {
-            databaseDirectory = File(context.filesDir, "tdlib").absolutePath
-            useMessageDatabase = true
-            useSecretChats = false
-            apiId = this@TdLibTelegramService.apiId
-            apiHash = this@TdLibTelegramService.apiHash
-            systemLanguageCode = "en"
-            deviceModel = Build.MODEL ?: "Android"
-            systemVersion = Build.VERSION.RELEASE ?: "Android"
-            applicationVersion = "0.1.0"
-        }
-        runCatching { client.send(params) }
-            .onFailure {
-                // Allow a genuine failure to be retried when TDLib re-emits the state.
-                parametersSent.set(false)
-                _authState.value = AuthState.Error(it.message ?: "Failed to initialize TDLib")
+        // getOrCreateKey() touches the Keystore and can fail on a broken provider, so it
+        // lives inside the guarded block alongside client.send — a failure surfaces as an
+        // error the user can retry, rather than escaping and stalling the update collector.
+        runCatching {
+            val params = TdApi.SetTdlibParameters().apply {
+                databaseDirectory = File(context.filesDir, "tdlib").absolutePath
+                // Encrypt the TDLib database at rest with a hardware-backed key (see
+                // DatabaseKeyStore). Protects the session on a rooted/compromised device.
+                databaseEncryptionKey = dbKeyStore.getOrCreateKey()
+                useMessageDatabase = true
+                useSecretChats = false
+                apiId = this@TdLibTelegramService.apiId
+                apiHash = this@TdLibTelegramService.apiHash
+                systemLanguageCode = "en"
+                deviceModel = Build.MODEL ?: "Android"
+                systemVersion = Build.VERSION.RELEASE ?: "Android"
+                applicationVersion = "0.1.0"
             }
+            client.send(params)
+        }.onFailure {
+            // Allow a genuine failure to be retried when TDLib re-emits the state.
+            parametersSent.set(false)
+            _authState.value = AuthState.Error(it.message ?: "Failed to initialize TDLib")
+        }
     }
 
     override suspend fun setPhoneNumber(phoneNumber: String) {
@@ -174,10 +189,6 @@ class TdLibTelegramService(
 
     override suspend fun checkPassword(password: String) = guarded {
         client.send(TdApi.CheckAuthenticationPassword(password))
-    }
-
-    override suspend fun requestQrLogin() = guarded {
-        client.send(TdApi.RequestQrCodeAuthentication(LongArray(0)))
     }
 
     override suspend fun logOut() {
