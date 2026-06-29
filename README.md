@@ -12,9 +12,7 @@ whole file is downloaded) via a small loopback HTTP server.
 - **Stack:** Kotlin · Jetpack Compose · Koin (DI) · TDLib · libmpv · Coil
 - **Platform:** Android, **arm64-v8a only** (`minSdk 26`, `targetSdk 37`)
 
-<p align="center">
-  <img src="docs/screenshot.png" width="300" alt="Library showing a channel's videos in Telegramedia">
-</p>
+<img src="docs/screenshot.png" width="300" alt="Library showing a channel's videos in Telegramedia">
 
 > Screenshot uses demo data; episode stills shown are for illustration only.
 
