@@ -20,14 +20,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.outlined.QrCode2
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,7 +48,7 @@ import app.telegramedia.ui.theme.TextSecondary
 import app.telegramedia.ui.theme.Violet
 import org.koin.androidx.compose.koinViewModel
 
-private enum class AuthStep { PHONE, CODE, PASSWORD, QR }
+private enum class AuthStep { PHONE, CODE, PASSWORD }
 
 @Composable
 fun AuthScreen(viewModel: AuthViewModel = koinViewModel()) {
@@ -80,13 +78,11 @@ fun AuthScreen(viewModel: AuthViewModel = koinViewModel()) {
             Spacer(Modifier.height(48.dp))
 
             val error = (state as? AuthState.Error)?.message
-            var forcePhone by remember { mutableStateOf(false) }
             var lastInputStep by remember { mutableStateOf(AuthStep.PHONE) }
             var lastPhone by remember { mutableStateOf("") }
             var lastHint by remember { mutableStateOf<String?>(null) }
 
             LaunchedEffect(state) {
-                if (state !is AuthState.WaitQrCode) forcePhone = false
                 (state as? AuthState.WaitCode)?.let { lastPhone = it.phoneNumber }
                 (state as? AuthState.WaitPassword)?.let { lastHint = it.hint }
             }
@@ -97,11 +93,10 @@ fun AuthScreen(viewModel: AuthViewModel = koinViewModel()) {
             val step = when (state) {
                 is AuthState.WaitCode -> AuthStep.CODE
                 is AuthState.WaitPassword -> AuthStep.PASSWORD
-                is AuthState.WaitQrCode -> if (forcePhone) AuthStep.PHONE else AuthStep.QR
                 is AuthState.Error, is AuthState.Ready -> lastInputStep
                 else -> AuthStep.PHONE
             }
-            LaunchedEffect(step) { if (step != AuthStep.QR) lastInputStep = step }
+            LaunchedEffect(step) { lastInputStep = step }
 
             AnimatedContent(
                 targetState = step,
@@ -112,22 +107,7 @@ fun AuthScreen(viewModel: AuthViewModel = koinViewModel()) {
                     AuthStep.PHONE -> PhoneStep(busy, error = error) { viewModel.submitPhone(it) }
                     AuthStep.CODE -> CodeStep(lastPhone, busy, error = error) { viewModel.submitCode(it) }
                     AuthStep.PASSWORD -> PasswordStep(lastHint, busy, error = error) { viewModel.submitPassword(it) }
-                    AuthStep.QR -> QrStep((state as? AuthState.WaitQrCode)?.link ?: "")
                 }
-            }
-
-            Spacer(Modifier.weight(1f))
-
-            when (step) {
-                AuthStep.PHONE -> TextButton(onClick = { viewModel.useQrLogin() }) {
-                    Icon(Icons.Outlined.QrCode2, contentDescription = null)
-                    Spacer(Modifier.size(8.dp))
-                    Text("Log in with a QR code")
-                }
-                AuthStep.QR -> TextButton(onClick = { forcePhone = true }) {
-                    Text("Use phone number instead")
-                }
-                else -> {}
             }
         }
     }
@@ -224,32 +204,6 @@ private fun PasswordStep(hint: String?, busy: Boolean, error: String? = null, on
         )
         Spacer(Modifier.height(20.dp))
         PrimaryButton("Unlock", busy, enabled = pw.isNotEmpty()) { onSubmit(pw) }
-    }
-}
-
-@Composable
-private fun QrStep(link: String) {
-    StepScaffold(
-        title = "Scan to log in",
-        subtitle = "Telegram → Settings → Devices → Link Desktop Device",
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(240.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(androidx.compose.ui.graphics.Color.White),
-            contentAlignment = Alignment.Center,
-        ) {
-            // Placeholder until ZXing-backed QR rendering is wired with real TDLib.
-            Text(
-                "QR\n$link",
-                color = Ink,
-                textAlign = TextAlign.Center,
-                style = androidx.compose.material3.MaterialTheme.typography.labelMedium,
-                modifier = Modifier.padding(16.dp),
-            )
-        }
     }
 }
 

@@ -9,11 +9,8 @@ sealed interface AuthState {
     /** TDLib is still initializing / setting parameters. */
     data object Initializing : AuthState
 
-    /** Waiting for the user to enter a phone number (or switch to QR). */
+    /** Waiting for the user to enter a phone number. */
     data object WaitPhoneNumber : AuthState
-
-    /** A login QR code is available; render [link] as a QR for another device to scan. */
-    data class WaitQrCode(val link: String) : AuthState
 
     /** Waiting for the SMS / app login code. */
     data class WaitCode(val phoneNumber: String) : AuthState

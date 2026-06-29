@@ -24,9 +24,6 @@ interface TelegramService {
 
     suspend fun checkPassword(password: String)
 
-    /** Switch the current login attempt to QR mode (TDLib `requestQrCodeAuthentication`). */
-    suspend fun requestQrLogin()
-
     suspend fun logOut()
 
     // --- Data ------------------------------------------------------------

@@ -34,6 +34,5 @@ class AuthViewModel(private val telegram: TelegramService) : ViewModel() {
     fun submitPhone(phone: String) = run { telegram.setPhoneNumber(phone) }
     fun submitCode(code: String) = run { telegram.checkCode(code) }
     fun submitPassword(password: String) = run { telegram.checkPassword(password) }
-    fun useQrLogin() = run { telegram.requestQrLogin() }
     fun logOut() = run { telegram.logOut() }
 }

@@ -18,7 +18,6 @@ import java.io.File
  *  - any phone number -> code step
  *  - code "12345" -> Ready, code "00000" -> WaitPassword, anything else -> Error
  *  - password "hunter2" -> Ready
- *  - requestQrLogin() -> WaitQrCode with a fake tg:// link
  */
 class FakeTelegramService(private val context: Context) : TelegramService {
 
@@ -58,11 +57,6 @@ class FakeTelegramService(private val context: Context) : TelegramService {
         _authState.value =
             if (password == "hunter2") AuthState.Ready
             else AuthState.Error("Wrong password. Try hunter2.")
-    }
-
-    override suspend fun requestQrLogin() {
-        delay(300)
-        _authState.value = AuthState.WaitQrCode("tg://login?token=FAKE-DEMO-TOKEN-0123456789")
     }
 
     override suspend fun logOut() {
