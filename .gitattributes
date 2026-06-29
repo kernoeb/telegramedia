@@ -1,0 +1,16 @@
+# Normalize line endings
+* text=auto eol=lf
+*.bat text eol=crlf
+
+# Gradle wrapper
+gradlew text eol=lf
+gradle/wrapper/gradle-wrapper.jar binary
+
+# Vendored TDLib (built from github.com/tdlib/td — see memory/tdlib-android-build).
+# Mark as generated + vendored so diffs collapse it and language stats ignore it.
+tdlib/src/main/java/org/drinkless/tdlib/TdApi.java linguist-generated=true
+tdlib/src/main/java/org/drinkless/tdlib/Client.java linguist-vendored=true
+tdlib/src/main/jniLibs/** binary
+
+# Native libraries
+*.so binary

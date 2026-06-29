@@ -1,0 +1,15 @@
+1
+00:00:01,000 --> 00:00:05,000
+Telegramedia — libmpv player
+
+2
+00:00:05,500 --> 00:00:09,500
+External SRT subtitle: working ✓
+
+3
+00:00:10,000 --> 00:00:14,000
+PGS · ASS · SRT — every codec supported
+
+4
+00:00:14,500 --> 00:00:19,000
+Tap the screen for playback controls

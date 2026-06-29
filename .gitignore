@@ -1,0 +1,44 @@
+# Built application files / archives
+*.apk
+*.aar
+*.aab
+*.ap_
+*.dex
+
+# Java/Kotlin
+*.class
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local configuration (SDK location, signing keys, secrets)
+local.properties
+keystore.properties
+*.jks
+*.keystore
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+captures/
+.navigation/
+output.json
+
+# NDK / native build
+.externalNativeBuild/
+.cxx/
+
+# Kotlin
+.kotlin/
+
+# Logs & OS files
+*.log
+.DS_Store
+
+# Telegram / TDLib runtime data (never commit session databases or api keys)
+/tdlib-db/
+secrets.properties
