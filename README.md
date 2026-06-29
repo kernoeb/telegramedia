@@ -16,6 +16,21 @@ whole file is downloaded) via a small loopback HTTP server.
 
 > Screenshot uses demo data; episode stills shown are for illustration only.
 
+## Features
+
+- 🎬 Plays almost anything: libmpv handles arbitrary codecs and containers
+- ⚡ Progressive streaming: playback starts before the file finishes downloading
+- 💬 Real subtitles: SRT, ASS and PGS, with adjustable size
+- 🔊 Multiple audio and subtitle tracks, switchable on the fly
+- 📚 Unified library: aggregates videos across the chats you pick, not one chat at a time
+- 🔎 Search and filter by source
+- ⏯️ Resume playback: per-video watch positions, restored on reopen
+- 👆 Gesture controls: swipe for brightness/volume, double-tap to seek
+- 🚀 Adjustable playback speed
+- 🔐 Phone or QR login, with 2FA support
+- 🌙 Clean dark UI built with Jetpack Compose
+- 🧪 Demo mode: try the whole app with no Telegram account
+
 ## Demo mode vs. real mode
 
 The app runs **out of the box in demo mode** - no Telegram account needed. When no
