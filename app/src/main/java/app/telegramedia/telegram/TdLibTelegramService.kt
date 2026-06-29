@@ -226,7 +226,7 @@ class TdLibTelegramService(
                 message.toMediaItem()?.let { items[it.messageId] = it }
             }
         }
-        return items.values.sortedByDescending { it.messageId }
+        return items.values.sortedBy { it.messageId } // channel/posting order (oldest first)
     }
 
     private fun TdApi.Message.toMediaItem(): MediaItem? = when (val c = content) {

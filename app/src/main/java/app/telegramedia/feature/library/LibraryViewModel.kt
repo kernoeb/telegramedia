@@ -76,7 +76,9 @@ class LibraryViewModel(
                     }
                 }.awaitAll().flatten()
             }
-            _all.value = entries.sortedByDescending { it.item.messageId }
+            // Channel/posting order (oldest first). messageId increases with time
+            // within a chat, so ascending = the order items were posted.
+            _all.value = entries.sortedBy { it.item.messageId }
         } finally {
             // Always clear the spinner — a thrown loadChats() must not pin it forever.
             _loading.value = false
